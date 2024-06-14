@@ -5,6 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.sp
+import androidx.core.text.isDigitsOnly
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -42,6 +43,26 @@ class CalculatorLogic : ViewModel(){
             if(button == "C"){
                 if(it.isNotEmpty()) {
                     _textEquation.value = it.dropLast(1)
+
+                    val newEquation = _textEquation.value
+                    println("hhh $newEquation")
+                    //Only Calculates result if the new equation is valid
+                    if (newEquation != null) {
+                        if (newEquation.isNotEmpty()) {
+                            fun isOperator(char: Char): Boolean {
+                                return when (char) {
+                                    '+', '-', '*', '/', '%' ,'(',')' -> true
+                                    else -> false
+                                }
+                            }
+                            if(!isOperator(newEquation.last())) {
+                                _textResult.value = calculateResult(_textEquation.value.toString())
+                            }
+                        } else{
+                            _textEquation.value = ""
+                            _textResult.value = "0"
+                        }
+                    }
                 }
                     return
             }
@@ -67,16 +88,20 @@ class CalculatorLogic : ViewModel(){
         }
 
     fun calculateResult(equation: String): String {
-       val context = Context.enter()
-        context.optimizationLevel = -1
-        val scriptable : Scriptable = context.initSafeStandardObjects()
-        var finalResult = context.evaluateString(scriptable,equation, "javascript", 1, null).toString()
-        if (finalResult.endsWith(".0")){
-            finalResult = finalResult.replace(".0","")
+        return try{
+            val context = Context.enter()
+            context.optimizationLevel = -1
+            val scriptable : Scriptable = context.initSafeStandardObjects()
+            var finalResult = context.evaluateString(scriptable,equation, "javascript", 1, null).toString()
+            if (finalResult.endsWith(".0")){
+                finalResult = finalResult.replace(".0","")
 //            finalResult = finalResult.dropLast(2)
-            finalResult = "= $finalResult"
+                finalResult = "= $finalResult"
+            }
+            return finalResult
+        } catch (e: Exception){
+            "Error"
         }
-        return finalResult
     }
 
 
