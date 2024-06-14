@@ -1,5 +1,6 @@
 package com.example.calculatorapp
 
+import android.icu.text.DecimalFormat
 import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.painter.Painter
@@ -42,8 +43,13 @@ class CalculatorLogic : ViewModel(){
 
             if(button == "C"){
                 if(it.isNotEmpty()) {
+                    if(_textResultSize.value == 56){
+                        _textResultSize.value = 33
+                    }
+                    if(_textEquationSize.value == 33){
+                        _textEquationSize.value =56
+                    }
                     _textEquation.value = it.dropLast(1)
-
                     val newEquation = _textEquation.value
                     println("hhh $newEquation")
                     //Only Calculates result if the new equation is valid
@@ -96,9 +102,12 @@ class CalculatorLogic : ViewModel(){
             if (finalResult.endsWith(".0")){
                 finalResult = finalResult.replace(".0","")
 //            finalResult = finalResult.dropLast(2)
-                finalResult = "= $finalResult"
+                finalResult = " $finalResult"
             }
-            return finalResult
+            val decimalFormat = DecimalFormat("#.##")
+            val formattedResult = decimalFormat.format(finalResult.toDoubleOrNull() ?: return "Error")
+
+            "= $formattedResult"
         } catch (e: Exception){
             "Error"
         }
